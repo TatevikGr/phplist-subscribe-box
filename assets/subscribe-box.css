@@ -1,0 +1,8 @@
+.ssb-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ssb-form.ssb-compact{gap:4px}
+.ssb-input{padding:8px;border:1px solid #ccc;border-radius:4px}
+.ssb-button{padding:8px 12px;background:#2271b1;color:#fff;border:none;border-radius:4px;cursor:pointer}
+.ssb-button:hover{background:#1b5a8b}
+.ssb-message{min-height:1.2em;width:100%;margin-top:4px;font-size:.95em}
+.ssb-message.ssb-error{color:#b11d1d}
+.ssb-message.ssb-success{color:#1d7b1b}
