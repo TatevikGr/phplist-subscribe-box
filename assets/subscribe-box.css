@@ -6,3 +6,4 @@
 .ssb-message{min-height:1.2em;width:100%;margin-top:4px;font-size:.95em}
 .ssb-message.ssb-error{color:#b11d1d}
 .ssb-message.ssb-success{color:#1d7b1b}
+.ssb-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}

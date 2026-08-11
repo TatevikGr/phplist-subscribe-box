@@ -2,7 +2,7 @@
 /**
  * Plugin Name: phpList Subscribe Box
  * Description: Adds a subscribe box via shortcode and widget, sending subscriptions to phpList (session key via login/password)
- * Version: 1.3.1
+ * Version: 1.0.0
  * Author: Tatevik Grigoryan
  * License: AGPL-3.0-or-later
  * Requires at least: 5.2
@@ -53,7 +53,6 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 'subscription_path' => '/api/v2/lists/1/subscribers',
                 'api_user'          => '',
                 'api_pass'          => '',
-                'email_field'       => 'email',
                 'success_message'   => 'Thanks! Please check your inbox.',
                 'error_message'     => 'Sorry, something went wrong. Please try again later.',
                 'enforce_https'     => '1',
@@ -62,10 +61,13 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
 
         /** Assets */
         public function enqueue_assets() : void {
-            wp_register_style('ssb_styles', plugins_url('assets/subscribe-box.css', __FILE__), [], '1.0.0');
+            $css_file = plugin_dir_path(__FILE__) . 'assets/subscribe-box.css';
+            $js_file  = plugin_dir_path(__FILE__) . 'assets/subscribe-box.js';
+
+            wp_register_style('ssb_styles', plugins_url('assets/subscribe-box.css', __FILE__), [], (string) filemtime($css_file));
             wp_enqueue_style('ssb_styles');
 
-            wp_register_script('ssb_script', plugins_url('assets/subscribe-box.js', __FILE__), ['jquery'], '1.0.0', true);
+            wp_register_script('ssb_script', plugins_url('assets/subscribe-box.js', __FILE__), ['jquery'], (string) filemtime($js_file), true);
             wp_localize_script('ssb_script', 'SSB', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce'    => wp_create_nonce(self::NONCE_ACTION),
@@ -93,7 +95,6 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             add_settings_field('subscription_path', 'Subscription Path', [$this, 'field_subscription_path'], 'ssb-settings', 'ssb_main_section');
             add_settings_field('api_user', 'phpList Username', [$this, 'field_api_user'], 'ssb-settings', 'ssb_main_section');
             add_settings_field('api_pass', 'phpList Password', [$this, 'field_api_pass'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('email_field', 'Email Field Name', [$this, 'field_email_field'], 'ssb-settings', 'ssb_main_section');
             add_settings_field('success_message', 'Success Message', [$this, 'field_success_message'], 'ssb-settings', 'ssb_main_section');
             add_settings_field('error_message', 'Error Message', [$this, 'field_error_message'], 'ssb-settings', 'ssb_main_section');
             add_settings_field('enforce_https', 'Enforce HTTPS', [$this, 'field_enforce_https'], 'ssb-settings', 'ssb_main_section');
@@ -110,7 +111,6 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 'api_user'          => isset($opts['api_user']) ? sanitize_text_field($opts['api_user']) : $defaults['api_user'],
                 // keep previous unless a new non-empty value is provided
                 'api_pass'          => (!empty($opts['api_pass']) && $opts['api_pass'] !== '********') ? wp_unslash($opts['api_pass']) : ( $prev['api_pass'] ?? '' ),
-                'email_field'       => isset($opts['email_field']) ? sanitize_key($opts['email_field']) : $defaults['email_field'],
                 'success_message'   => isset($opts['success_message']) ? sanitize_text_field($opts['success_message']) : $defaults['success_message'],
                 'error_message'     => isset($opts['error_message']) ? sanitize_text_field($opts['error_message']) : $defaults['error_message'],
                 'enforce_https'     => !empty($opts['enforce_https']) ? '1' : '0',
@@ -134,7 +134,6 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         public function field_subscription_path() { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[subscription_path]" value="'.esc_attr($o['subscription_path']).'" class="regular-text" placeholder="/api/v2/lists/1/subscribers" />'; }
         public function field_api_user()          { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[api_user]" value="'.esc_attr($o['api_user']).'" class="regular-text" placeholder="apiuser" />'; }
         public function field_api_pass()          { $o = $this->get_options(); $mask = $o['api_pass'] ? '********' : ''; echo '<input type="password" name="'.self::OPTION_NAME.'[api_pass]" value="'.esc_attr($mask).'" class="regular-text" autocomplete="new-password" placeholder="••••••••" />'; echo '<p class="description">Tip: set <code>SSB_PHPLIST_USER</code> / <code>SSB_PHPLIST_PASS</code> in wp-config/env to avoid storing secrets in DB.</p>'; }
-        public function field_email_field()       { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[email_field]" value="'.esc_attr($o['email_field']).'" class="regular-text" />'; }
         public function field_success_message()   { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[success_message]" value="'.esc_attr($o['success_message']).'" class="regular-text" />'; }
         public function field_error_message()     { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[error_message]" value="'.esc_attr($o['error_message']).'" class="regular-text" />'; }
         public function field_enforce_https()     { $o = $this->get_options(); echo '<label><input type="checkbox" name="'.self::OPTION_NAME.'[enforce_https]" value="1" '.checked('1',$o['enforce_https'],false).' /> Require HTTPS endpoint</label>'; }
@@ -169,6 +168,8 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 $html .= '<input type="text" name="name" class="ssb-input ssb-name" placeholder="'.esc_attr($atts['placeholder_name']).'" />';
             }
             $html .= '<input type="email" name="email" class="ssb-input ssb-email" placeholder="'.esc_attr($atts['placeholder_email']).'" required />';
+            // Honeypot: hidden from humans via CSS, often auto-filled by bots
+            $html .= '<input type="text" name="ssb_hp" class="ssb-hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" />';
             $html .= '<button type="submit" class="ssb-button">'.esc_html($atts['button_text']).'</button>';
             $html .= '<div class="ssb-message" aria-live="polite"></div>';
             $html .= '</form>';
@@ -182,13 +183,24 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 wp_send_json_error(['message' => 'Invalid request.'], 400);
             }
 
+            $opts = $this->get_options();
+
+            // Honeypot: real users never fill this in. Pretend success so bots don't learn to avoid it.
+            $honeypot = isset($_POST['ssb_hp']) ? trim(sanitize_text_field(wp_unslash($_POST['ssb_hp']))) : '';
+            if ($honeypot !== '') {
+                wp_send_json_success(['message' => $opts['success_message']]);
+            }
+
+            if ($this->is_rate_limited($this->get_client_ip())) {
+                wp_send_json_error(['message' => 'Too many requests. Please try again later.'], 429);
+            }
+
             $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
             $name  = isset($_POST['name'])  ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
             if (empty($email) || !is_email($email)) {
                 wp_send_json_error(['message' => 'Please enter a valid email.'], 400);
             }
 
-            $opts = $this->get_options();
             $payload = $this->build_payload($email, $name, $opts);
 
             $result = $this->push_to_phplist($payload);
@@ -200,6 +212,25 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
 
         private function build_payload(string $email, string $name, array $opts) : array {
             return ['emails' => [$email]];
+        }
+
+        /** Best-effort client IP; deliberately ignores X-Forwarded-For to avoid trivial spoofing */
+        private function get_client_ip() : string {
+            return isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '0.0.0.0';
+        }
+
+        /** Simple sliding-window throttle: max N submissions per IP per window */
+        private function is_rate_limited(string $ip) : bool {
+            $limit  = 5;
+            $window = 10 * MINUTE_IN_SECONDS;
+            $key    = 'ssb_rl_' . md5($ip);
+            $count  = (int) get_transient($key);
+
+            if ($count >= $limit) {
+                return true;
+            }
+            set_transient($key, $count + 1, $window);
+            return false;
         }
 
         /** === phpList client ==================================================== */
