@@ -1,9 +1,166 @@
-.ssb-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.ssb-form.ssb-compact{gap:4px}
-.ssb-input{padding:8px;border:1px solid #ccc;border-radius:4px}
-.ssb-button{padding:8px 12px;background:#2271b1;color:#fff;border:none;border-radius:4px;cursor:pointer}
-.ssb-button:hover{background:#1b5a8b}
-.ssb-message{min-height:1.2em;width:100%;margin-top:4px;font-size:.95em}
-.ssb-message.ssb-error{color:#b11d1d}
-.ssb-message.ssb-success{color:#1d7b1b}
+.ssb-box{
+  --ssb-primary:#155eef;
+  --ssb-primary-hover:#0e46b8;
+  --ssb-border:rgba(128,138,148,.35);
+  --ssb-border-hover:rgba(128,138,148,.6);
+  --ssb-focus-ring:rgba(21,94,239,.25);
+  --ssb-error:#d64545;
+  --ssb-success:#2e9e5b;
+  max-width:640px;
+  margin:0 auto;
+  padding:24px 16px;
+  font-family:inherit;
+  color:inherit;
+  text-align:center;
+}
+.ssb-box.ssb-compact{
+  max-width:none;
+  margin:0;
+  padding:0;
+  text-align:left;
+}
+
+.ssb-heading{
+  margin:0 0 8px;
+  font-size:clamp(1.5rem,4vw,2.1rem);
+  font-weight:800;
+  line-height:1.15;
+  color:inherit;
+}
+
+.ssb-subtitle{
+  margin:0 auto 24px;
+  max-width:38ch;
+  font-size:1rem;
+  line-height:1.5;
+  color:currentColor;
+  opacity:.6;
+}
+
+.ssb-form{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.ssb-pill{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:6px;
+  border-radius:999px;
+  box-shadow:0 1px 3px rgba(0,0,0,.07), 0 4px 14px rgba(0,0,0,.05);
+}
+.ssb-box.ssb-compact .ssb-pill{box-shadow:none;padding:0}
+
+.ssb-avatar{
+  flex:0 0 auto;
+  display:flex;
+  line-height:0;
+}
+.ssb-icon{display:block;width:32px;height:32px;border-radius:50%}
+.ssb-box.ssb-compact .ssb-icon{width:26px;height:26px}
+
+.ssb-field{
+  flex:1 1 auto;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 16px;
+  border:1px solid var(--ssb-border);
+  border-radius:999px;
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.ssb-field:hover{border-color:var(--ssb-border-hover)}
+.ssb-field:focus-within{
+  border-color:var(--ssb-primary);
+  box-shadow:0 0 0 3px var(--ssb-focus-ring);
+}
+.ssb-field-icon{flex:0 0 auto;opacity:.5}
+
+.ssb-input{
+  flex:1 1 auto;
+  min-width:0;
+  padding:0;
+  font-size:.95em;
+  line-height:1.3;
+  color:inherit;
+  background:transparent;
+  border:none;
+  outline:none;
+}
+.ssb-input::placeholder{color:currentColor;opacity:.55}
+
+.ssb-button{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:11px 22px;
+  font-size:.95em;
+  font-weight:700;
+  color:#fff;
+  background:var(--ssb-primary);
+  border:none;
+  border-radius:999px;
+  box-shadow:0 1px 2px rgba(0,0,0,.1);
+  cursor:pointer;
+  transition:background-color .15s ease, box-shadow .15s ease, transform .05s ease;
+}
+.ssb-button:hover{background:var(--ssb-primary-hover)}
+.ssb-button:active{transform:translateY(1px)}
+.ssb-button:focus-visible{outline:2px solid var(--ssb-primary);outline-offset:2px}
+.ssb-button:disabled{opacity:.65;cursor:not-allowed;transform:none}
+
+.ssb-box.ssb-compact .ssb-field,
+.ssb-box.ssb-compact .ssb-button{
+  padding:7px 12px;
+  font-size:.85em;
+}
+
+.ssb-message{
+  min-height:1.1em;
+  font-size:.85em;
+  transition:opacity .15s ease;
+}
+.ssb-message:empty{opacity:0}
+.ssb-message.ssb-error{color:var(--ssb-error)}
+.ssb-message.ssb-success{color:var(--ssb-success)}
+
 .ssb-hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;overflow:hidden}
+
+.ssb-badges{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:20px;
+  font-size:.85em;
+}
+.ssb-badge{display:inline-flex;align-items:center;gap:6px;color:inherit;opacity:.85}
+.ssb-badge svg{color:var(--ssb-primary);flex:0 0 auto}
+.ssb-sep{opacity:.25}
+
+.ssb-branding{
+  margin:16px 0 0;
+  font-size:.8em;
+  opacity:.45;
+}
+
+@media (max-width:560px){
+  .ssb-box:not(.ssb-compact) .ssb-pill{
+    flex-direction:column;
+    align-items:stretch;
+    border-radius:20px;
+    padding:10px;
+  }
+  .ssb-box:not(.ssb-compact) .ssb-avatar{align-self:center}
+  .ssb-box:not(.ssb-compact) .ssb-button{justify-content:center}
+}
+
+@media (max-width:360px){
+  .ssb-box.ssb-compact .ssb-pill{flex-direction:column;align-items:stretch}
+  .ssb-box.ssb-compact .ssb-button{justify-content:center}
+}

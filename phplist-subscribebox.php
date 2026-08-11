@@ -150,29 +150,64 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         /** Shortcode */
         public function render_subscribe_box($atts = []) : string {
             $atts = shortcode_atts([
-                'placeholder_email' => 'Your email',
-                'placeholder_name'  => 'Your name (optional)',
+                'heading'           => 'Stay in the loop',
+                'subtitle'          => 'Subscribe to our newsletter and get the latest updates delivered straight to your inbox.',
+                'placeholder_email' => 'Enter your email address',
                 'button_text'       => 'Subscribe',
-                'show_name'         => 'true',
+                'show_badges'       => 'true',
+                'show_branding'     => 'true',
                 'compact'           => 'false',
             ], $atts, 'subscribe_box');
 
-            $show_name = filter_var($atts['show_name'], FILTER_VALIDATE_BOOLEAN);
-            $compact   = filter_var($atts['compact'], FILTER_VALIDATE_BOOLEAN);
+            $compact       = filter_var($atts['compact'], FILTER_VALIDATE_BOOLEAN);
+            $show_badges   = !$compact && filter_var($atts['show_badges'], FILTER_VALIDATE_BOOLEAN);
+            $show_branding = !$compact && filter_var($atts['show_branding'], FILTER_VALIDATE_BOOLEAN);
 
-            $nonce = wp_create_nonce(self::NONCE_ACTION);
-            $html  = '<form class="ssb-form'.($compact?' ssb-compact':'').'" method="post">';
+            $nonce    = wp_create_nonce(self::NONCE_ACTION);
+            $icon_url = plugins_url('assets/phplist_icon.png', __FILE__);
+
+            $html = '<div class="ssb-box'.($compact?' ssb-compact':'').'">';
+
+            if (!$compact) {
+                if ($atts['heading'] !== '') {
+                    $html .= '<h2 class="ssb-heading">'.esc_html($atts['heading']).'</h2>';
+                }
+                if ($atts['subtitle'] !== '') {
+                    $html .= '<p class="ssb-subtitle">'.esc_html($atts['subtitle']).'</p>';
+                }
+            }
+
+            $html .= '<form class="ssb-form" method="post">';
             $html .= '<input type="hidden" name="action" value="ssb_subscribe" />';
             $html .= '<input type="hidden" name="'.esc_attr(self::NONCE_NAME).'" value="'.esc_attr($nonce).'" />';
-            if ($show_name) {
-                $html .= '<input type="text" name="name" class="ssb-input ssb-name" placeholder="'.esc_attr($atts['placeholder_name']).'" />';
-            }
-            $html .= '<input type="email" name="email" class="ssb-input ssb-email" placeholder="'.esc_attr($atts['placeholder_email']).'" required />';
+            $html .= '<div class="ssb-pill">';
+            $html .= '<span class="ssb-avatar"><img src="'.esc_url($icon_url).'" alt="" class="ssb-icon" width="32" height="32" /></span>';
+            $html .= '<span class="ssb-field">';
+            $html .= '<svg class="ssb-field-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
+            $html .= '<input type="email" name="email" class="ssb-input" placeholder="'.esc_attr($atts['placeholder_email']).'" required />';
+            $html .= '</span>';
+            $html .= '<button type="submit" class="ssb-button">'.esc_html($atts['button_text']).' <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>';
+            $html .= '</div>';
             // Honeypot: hidden from humans via CSS, often auto-filled by bots
             $html .= '<input type="text" name="ssb_hp" class="ssb-hp" value="" tabindex="-1" autocomplete="off" aria-hidden="true" />';
-            $html .= '<button type="submit" class="ssb-button">'.esc_html($atts['button_text']).'</button>';
             $html .= '<div class="ssb-message" aria-live="polite"></div>';
             $html .= '</form>';
+
+            if ($show_badges) {
+                $html .= '<div class="ssb-badges">';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> No spam, ever</span>';
+                $html .= '<span class="ssb-sep" aria-hidden="true">|</span>';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Your data is safe</span>';
+                $html .= '<span class="ssb-sep" aria-hidden="true">|</span>';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg> Unsubscribe anytime</span>';
+                $html .= '</div>';
+            }
+
+            if ($show_branding) {
+                $html .= '<p class="ssb-branding">Powered by phpList</p>';
+            }
+
+            $html .= '</div>';
             return $html;
         }
 
@@ -196,12 +231,11 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             }
 
             $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
-            $name  = isset($_POST['name'])  ? sanitize_text_field(wp_unslash($_POST['name'])) : '';
             if (empty($email) || !is_email($email)) {
                 wp_send_json_error(['message' => 'Please enter a valid email.'], 400);
             }
 
-            $payload = $this->build_payload($email, $name, $opts);
+            $payload = $this->build_payload($email, $opts);
 
             $result = $this->push_to_phplist($payload);
             if (is_wp_error($result)) {
@@ -210,7 +244,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             wp_send_json_success(['message' => $opts['success_message']]);
         }
 
-        private function build_payload(string $email, string $name, array $opts) : array {
+        private function build_payload(string $email, array $opts) : array {
             return ['emails' => [$email]];
         }
 
@@ -377,7 +411,7 @@ if (!class_exists('PhpList_SSB_Subscribe_Widget')):
             if (!empty($instance['title'])) {
                 echo $args['before_title'] . apply_filters('widget_title', $instance['title']) . $args['after_title'];
             }
-            echo do_shortcode('[subscribe_box]');
+            echo do_shortcode('[subscribe_box compact="true"]');
             echo $args['after_widget'];
         }
 

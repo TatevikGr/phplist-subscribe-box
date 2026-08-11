@@ -17,15 +17,17 @@ A minimal WordPress plugin that adds a subscribe box via a shortcode and widget,
 - Widget: Appearance -> Widgets -> add "Subscribe Box".
 
 ### Shortcode attributes
-- `placeholder_email` (default "Your email")
-- `placeholder_name` (default "Your name (optional)")
+- `heading` (default "Stay in the loop")
+- `subtitle` (default "Subscribe to our newsletter and get the latest updates delivered straight to your inbox.")
+- `placeholder_email` (default "Enter your email address")
 - `button_text` (default "Subscribe")
-- `show_name` ("true"/"false", default "true")
-- `compact` ("true"/"false", default "false")
+- `show_badges` ("true"/"false", default "true") — shows the "No spam, ever / Your data is safe / Unsubscribe anytime" row
+- `show_branding` ("true"/"false", default "true") — shows the "Powered by phpList" footer
+- `compact` ("true"/"false", default "false") — renders just the email pill (no heading, subtitle, badges, or branding); used automatically by the widget
 
 Example:
 ```
-[subscribe_box placeholder_email="Email address" button_text="Join"]
+[subscribe_box heading="Join our list" placeholder_email="Email address" button_text="Join"]
 ```
 
 ## How it works

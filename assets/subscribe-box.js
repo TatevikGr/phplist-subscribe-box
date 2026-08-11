@@ -9,12 +9,14 @@
   $(document).on('submit', '.ssb-form', function(e){
     e.preventDefault();
     var $form = $(this);
+    var $button = $form.find('.ssb-button');
     var data = $form.serializeArray();
     // ensure ajax action
     if (!data.find(function(i){ return i.name === 'action'; })) {
       data.push({name: 'action', value: 'ssb_subscribe'});
     }
 
+    $button.prop('disabled', true);
     setMessage($form, 'Working...', true);
     $.post(SSB.ajax_url, data)
       .done(function(resp){
@@ -33,6 +35,9 @@
           msg = xhr.responseJSON.data.message;
         }
         setMessage($form, msg, false);
+      })
+      .always(function(){
+        $button.prop('disabled', false);
       });
   });
 })(jQuery);
