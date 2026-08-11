@@ -4,7 +4,10 @@
  * Description: Adds a subscribe box via shortcode and widget, sending subscriptions to phpList (session key via login/password)
  * Version: 1.0.0
  * Author: Tatevik Grigoryan
- * License: AGPL-3.0-or-later
+ * Text Domain: phplist-subscribe-box
+ * Domain Path: /languages
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires at least: 5.2
  * Requires PHP: 7.4
  */
@@ -21,6 +24,9 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         const NONCE_NAME   = 'ssb_nonce';
 
         public function __construct() {
+            // Translations
+            add_action('init', [$this, 'load_textdomain']);
+
             // Settings
             add_action('admin_menu', [$this, 'add_settings_page']);
             add_action('admin_init', [$this, 'register_settings']);
@@ -39,6 +45,10 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             add_action('widgets_init', [__CLASS__, 'register_widget']);
         }
 
+        public function load_textdomain() : void {
+            load_plugin_textdomain('phplist-subscribe-box', false, dirname(plugin_basename(__FILE__)) . '/languages');
+        }
+
         /** Register widget after class is defined */
         public static function register_widget() : void {
             if (class_exists('PhpList_SSB_Subscribe_Widget')) {
@@ -53,8 +63,8 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 'subscription_path' => '/api/v2/lists/1/subscribers',
                 'api_user'          => '',
                 'api_pass'          => '',
-                'success_message'   => 'Thanks! Please check your inbox.',
-                'error_message'     => 'Sorry, something went wrong. Please try again later.',
+                'success_message'   => __('Thanks! Please check your inbox.', 'phplist-subscribe-box'),
+                'error_message'     => __('Sorry, something went wrong. Please try again later.', 'phplist-subscribe-box'),
                 'enforce_https'     => '1',
             ];
         }
@@ -71,13 +81,18 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             wp_localize_script('ssb_script', 'SSB', [
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce'    => wp_create_nonce(self::NONCE_ACTION),
+                'i18n'     => [
+                    'working'      => __('Working...', 'phplist-subscribe-box'),
+                    'subscribed'   => __('Subscribed!', 'phplist-subscribe-box'),
+                    'genericError' => __('Error. Please try again.', 'phplist-subscribe-box'),
+                ],
             ]);
             wp_enqueue_script('ssb_script');
         }
 
         /** Admin UI */
         public function add_settings_page() : void {
-            add_options_page('Simple Subscribe Box', 'Subscribe Box', 'manage_options', 'ssb-settings', [$this, 'render_settings_page']);
+            add_options_page(__('phpList Subscribe Box', 'phplist-subscribe-box'), __('Subscribe Box', 'phplist-subscribe-box'), 'manage_options', 'ssb-settings', [$this, 'render_settings_page']);
         }
 
         public function register_settings() : void {
@@ -87,17 +102,22 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 'default' => self::default_options(),
             ]);
 
-            add_settings_section('ssb_main_section', 'phpList API Settings', function() {
-                echo '<p>Configure phpList endpoint and credentials. If you set environment variables <code>SSB_PHPLIST_USER</code> and <code>SSB_PHPLIST_PASS</code>, they will override the saved username/password here.</p>';
+            add_settings_section('ssb_main_section', __('phpList API Settings', 'phplist-subscribe-box'), function() {
+                echo '<p>' . sprintf(
+                    /* translators: 1: SSB_PHPLIST_USER env var name, 2: SSB_PHPLIST_PASS env var name */
+                    esc_html__('Configure phpList endpoint and credentials. If you set environment variables %1$s and %2$s, they will override the saved username/password here.', 'phplist-subscribe-box'),
+                    '<code>SSB_PHPLIST_USER</code>',
+                    '<code>SSB_PHPLIST_PASS</code>'
+                ) . '</p>';
             }, 'ssb-settings');
 
-            add_settings_field('api_endpoint', 'Base URL (phpList)', [$this, 'field_api_endpoint'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('subscription_path', 'Subscription Path', [$this, 'field_subscription_path'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('api_user', 'phpList Username', [$this, 'field_api_user'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('api_pass', 'phpList Password', [$this, 'field_api_pass'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('success_message', 'Success Message', [$this, 'field_success_message'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('error_message', 'Error Message', [$this, 'field_error_message'], 'ssb-settings', 'ssb_main_section');
-            add_settings_field('enforce_https', 'Enforce HTTPS', [$this, 'field_enforce_https'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('api_endpoint', __('Base URL (phpList)', 'phplist-subscribe-box'), [$this, 'field_api_endpoint'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('subscription_path', __('Subscription Path', 'phplist-subscribe-box'), [$this, 'field_subscription_path'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('api_user', __('phpList Username', 'phplist-subscribe-box'), [$this, 'field_api_user'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('api_pass', __('phpList Password', 'phplist-subscribe-box'), [$this, 'field_api_pass'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('success_message', __('Success Message', 'phplist-subscribe-box'), [$this, 'field_success_message'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('error_message', __('Error Message', 'phplist-subscribe-box'), [$this, 'field_error_message'], 'ssb-settings', 'ssb_main_section');
+            add_settings_field('enforce_https', __('Enforce HTTPS', 'phplist-subscribe-box'), [$this, 'field_enforce_https'], 'ssb-settings', 'ssb_main_section');
         }
 
         public function sanitize_options($opts) : array {
@@ -118,7 +138,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
 
             if ($out['enforce_https'] === '1' && $out['api_endpoint']) {
                 if (parse_url($out['api_endpoint'], PHP_URL_SCHEME) !== 'https') {
-                    add_settings_error(self::OPTION_NAME, 'ssb_https_required', 'Endpoint must be HTTPS when enforcement is enabled.');
+                    add_settings_error(self::OPTION_NAME, 'ssb_https_required', __('Endpoint must be HTTPS when enforcement is enabled.', 'phplist-subscribe-box'));
                 }
             }
 
@@ -130,30 +150,44 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         }
 
         /** Fields */
-        public function field_api_endpoint()      { $o = $this->get_options(); echo '<input type="url" name="'.self::OPTION_NAME.'[api_endpoint]" value="'.esc_attr($o['api_endpoint']).'" class="regular-text" placeholder="https://phplist.example.com" />'; }
-        public function field_subscription_path() { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[subscription_path]" value="'.esc_attr($o['subscription_path']).'" class="regular-text" placeholder="/api/v2/lists/1/subscribers" />'; }
-        public function field_api_user()          { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[api_user]" value="'.esc_attr($o['api_user']).'" class="regular-text" placeholder="apiuser" />'; }
-        public function field_api_pass()          { $o = $this->get_options(); $mask = $o['api_pass'] ? '********' : ''; echo '<input type="password" name="'.self::OPTION_NAME.'[api_pass]" value="'.esc_attr($mask).'" class="regular-text" autocomplete="new-password" placeholder="••••••••" />'; echo '<p class="description">Tip: set <code>SSB_PHPLIST_USER</code> / <code>SSB_PHPLIST_PASS</code> in wp-config/env to avoid storing secrets in DB.</p>'; }
-        public function field_success_message()   { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[success_message]" value="'.esc_attr($o['success_message']).'" class="regular-text" />'; }
-        public function field_error_message()     { $o = $this->get_options(); echo '<input type="text" name="'.self::OPTION_NAME.'[error_message]" value="'.esc_attr($o['error_message']).'" class="regular-text" />'; }
-        public function field_enforce_https()     { $o = $this->get_options(); echo '<label><input type="checkbox" name="'.self::OPTION_NAME.'[enforce_https]" value="1" '.checked('1',$o['enforce_https'],false).' /> Require HTTPS endpoint</label>'; }
+        public function field_api_endpoint()      { $o = $this->get_options(); echo '<input type="url" name="'.esc_attr(self::OPTION_NAME).'[api_endpoint]" value="'.esc_attr($o['api_endpoint']).'" class="regular-text" placeholder="https://phplist.example.com" />'; }
+        public function field_subscription_path() { $o = $this->get_options(); echo '<input type="text" name="'.esc_attr(self::OPTION_NAME).'[subscription_path]" value="'.esc_attr($o['subscription_path']).'" class="regular-text" placeholder="/api/v2/lists/1/subscribers" />'; }
+        public function field_api_user()          { $o = $this->get_options(); echo '<input type="text" name="'.esc_attr(self::OPTION_NAME).'[api_user]" value="'.esc_attr($o['api_user']).'" class="regular-text" placeholder="apiuser" />'; }
+        public function field_api_pass()          {
+            $o = $this->get_options();
+            $mask = $o['api_pass'] ? '********' : '';
+            echo '<input type="password" name="'.esc_attr(self::OPTION_NAME).'[api_pass]" value="'.esc_attr($mask).'" class="regular-text" autocomplete="new-password" placeholder="••••••••" />';
+            echo '<p class="description">' . sprintf(
+                /* translators: 1: SSB_PHPLIST_USER env var name, 2: SSB_PHPLIST_PASS env var name */
+                esc_html__('Tip: set %1$s / %2$s in wp-config/env to avoid storing secrets in DB.', 'phplist-subscribe-box'),
+                '<code>SSB_PHPLIST_USER</code>',
+                '<code>SSB_PHPLIST_PASS</code>'
+            ) . '</p>';
+        }
+        public function field_success_message()   { $o = $this->get_options(); echo '<input type="text" name="'.esc_attr(self::OPTION_NAME).'[success_message]" value="'.esc_attr($o['success_message']).'" class="regular-text" />'; }
+        public function field_error_message()     { $o = $this->get_options(); echo '<input type="text" name="'.esc_attr(self::OPTION_NAME).'[error_message]" value="'.esc_attr($o['error_message']).'" class="regular-text" />'; }
+        public function field_enforce_https()     { $o = $this->get_options(); echo '<label><input type="checkbox" name="'.esc_attr(self::OPTION_NAME).'[enforce_https]" value="1" '.checked('1',$o['enforce_https'],false).' /> '.esc_html__('Require HTTPS endpoint', 'phplist-subscribe-box').'</label>'; }
 
         public function render_settings_page() : void {
             if (!current_user_can('manage_options')) { return; }
-            echo '<div class="wrap"><h1>Simple Subscribe Box</h1><form method="post" action="options.php">';
+            echo '<div class="wrap"><h1>' . esc_html__('phpList Subscribe Box', 'phplist-subscribe-box') . '</h1><form method="post" action="options.php">';
             settings_fields(self::OPTION_GROUP);
             do_settings_sections('ssb-settings');
             submit_button();
-            echo '</form><p>Use the shortcode <code>[subscribe_box]</code> to display the form.</p></div>';
+            echo '</form><p>' . sprintf(
+                /* translators: %s: the [subscribe_box] shortcode tag */
+                esc_html__('Use the shortcode %s to display the form.', 'phplist-subscribe-box'),
+                '<code>[subscribe_box]</code>'
+            ) . '</p></div>';
         }
 
         /** Shortcode */
         public function render_subscribe_box($atts = []) : string {
             $atts = shortcode_atts([
-                'heading'           => 'Stay in the loop',
-                'subtitle'          => 'Subscribe to our newsletter and get the latest updates delivered straight to your inbox.',
-                'placeholder_email' => 'Enter your email address',
-                'button_text'       => 'Subscribe',
+                'heading'           => __('Stay in the loop', 'phplist-subscribe-box'),
+                'subtitle'          => __('Subscribe to our newsletter and get the latest updates delivered straight to your inbox.', 'phplist-subscribe-box'),
+                'placeholder_email' => __('Enter your email address', 'phplist-subscribe-box'),
+                'button_text'       => __('Subscribe', 'phplist-subscribe-box'),
                 'show_badges'       => 'true',
                 'show_branding'     => 'true',
                 'compact'           => 'false',
@@ -195,16 +229,16 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
 
             if ($show_badges) {
                 $html .= '<div class="ssb-badges">';
-                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> No spam, ever</span>';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg> ' . esc_html__('No spam, ever', 'phplist-subscribe-box') . '</span>';
                 $html .= '<span class="ssb-sep" aria-hidden="true">|</span>';
-                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Your data is safe</span>';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> ' . esc_html__('Your data is safe', 'phplist-subscribe-box') . '</span>';
                 $html .= '<span class="ssb-sep" aria-hidden="true">|</span>';
-                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg> Unsubscribe anytime</span>';
+                $html .= '<span class="ssb-badge"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg> ' . esc_html__('Unsubscribe anytime', 'phplist-subscribe-box') . '</span>';
                 $html .= '</div>';
             }
 
             if ($show_branding) {
-                $html .= '<p class="ssb-branding">Powered by phpList</p>';
+                $html .= '<p class="ssb-branding">' . esc_html__('Powered by phpList', 'phplist-subscribe-box') . '</p>';
             }
 
             $html .= '</div>';
@@ -215,7 +249,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         public function handle_ajax_subscribe() : void {
             $nonce = isset($_POST[self::NONCE_NAME]) ? sanitize_text_field(wp_unslash($_POST[self::NONCE_NAME])) : '';
             if (!wp_verify_nonce($nonce, self::NONCE_ACTION)) {
-                wp_send_json_error(['message' => 'Invalid request.'], 400);
+                wp_send_json_error(['message' => __('Invalid request.', 'phplist-subscribe-box')], 400);
             }
 
             $opts = $this->get_options();
@@ -227,12 +261,12 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             }
 
             if ($this->is_rate_limited($this->get_client_ip())) {
-                wp_send_json_error(['message' => 'Too many requests. Please try again later.'], 429);
+                wp_send_json_error(['message' => __('Too many requests. Please try again later.', 'phplist-subscribe-box')], 429);
             }
 
             $email = isset($_POST['email']) ? sanitize_email(wp_unslash($_POST['email'])) : '';
             if (empty($email) || !is_email($email)) {
-                wp_send_json_error(['message' => 'Please enter a valid email.'], 400);
+                wp_send_json_error(['message' => __('Please enter a valid email.', 'phplist-subscribe-box')], 400);
             }
 
             $payload = $this->build_payload($email, $opts);
@@ -273,10 +307,10 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             $opts = $this->get_options();
 
             if (empty($opts['api_endpoint'])) {
-                return new WP_Error('ssb_no_endpoint', 'phpList endpoint is not configured.');
+                return new WP_Error('ssb_no_endpoint', __('phpList endpoint is not configured.', 'phplist-subscribe-box'));
             }
             if ($opts['enforce_https'] === '1' && parse_url($opts['api_endpoint'], PHP_URL_SCHEME) !== 'https') {
-                return new WP_Error('ssb_https_required', 'phpList endpoint must be HTTPS.');
+                return new WP_Error('ssb_https_required', __('phpList endpoint must be HTTPS.', 'phplist-subscribe-box'));
             }
 
             $base = rtrim($opts['api_endpoint'], '/');
@@ -302,7 +336,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             $json = json_decode($body, true);
             $has_error = is_array($json) && (isset($json['error']) || isset($json['errors']));
             if (($code < 200 || $code >= 300) || $has_error) {
-                $msg = $this->extract_error_message($body) ?: 'phpList API error.';
+                $msg = $this->extract_error_message($body) ?: __('phpList API error.', 'phplist-subscribe-box');
                 return new WP_Error('ssb_api_error', $msg, ['status' => $code]);
             }
             return ['ok' => true];
@@ -311,7 +345,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
         private function phplist_login(string $base) {
             $user = $this->get_phplist_user();
             $pass = $this->get_phplist_pass();
-            if (!$user || !$pass) return new WP_Error('ssb_missing_creds', 'phpList credentials not configured.');
+            if (!$user || !$pass) return new WP_Error('ssb_missing_creds', __('phpList credentials not configured.', 'phplist-subscribe-box'));
 
             $resp = wp_remote_post($base.'/api/v2/sessions', [
                 'timeout' => 10,
@@ -325,7 +359,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             $json = json_decode($body, true);
 
             if ($code < 200 || $code >= 300 || !is_array($json) || empty($json['key'])) {
-                $msg = $this->extract_error_message($body) ?: 'phpList login failed (invalid credentials or response).';
+                $msg = $this->extract_error_message($body) ?: __('phpList login failed (invalid credentials or response).', 'phplist-subscribe-box');
                 return new WP_Error('ssb_login_failed', $msg, ['status' => $code]);
             }
 
@@ -361,7 +395,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             if (json_last_error() === JSON_ERROR_NONE && is_array($json)) {
                 if (!empty($json['message']) && is_string($json['message'])) return sanitize_text_field($json['message']);
                 if (!empty($json['error'])) {
-                    return is_array($json['error']) ? sanitize_text_field($json['error']['message'] ?? 'Error') : sanitize_text_field($json['error']);
+                    return is_array($json['error']) ? sanitize_text_field($json['error']['message'] ?? __('Error', 'phplist-subscribe-box')) : sanitize_text_field($json['error']);
                 }
                 if (!empty($json['errors']) && is_array($json['errors'])) {
                     return sanitize_text_field(reset($json['errors']));
@@ -401,8 +435,8 @@ endif; // end PhpList_Subscribe_Box_Plugin guard
 if (!class_exists('PhpList_SSB_Subscribe_Widget')):
     class PhpList_SSB_Subscribe_Widget extends WP_Widget {
         public function __construct() {
-            parent::__construct('phplist_ssb_subscribe_widget', 'Subscribe Box (phpList)', [
-                'description' => 'A simple subscribe form that posts to phpList.'
+            parent::__construct('phplist_ssb_subscribe_widget', __('Subscribe Box (phpList)', 'phplist-subscribe-box'), [
+                'description' => __('A simple subscribe form that posts to phpList.', 'phplist-subscribe-box')
             ]);
         }
 
@@ -416,9 +450,9 @@ if (!class_exists('PhpList_SSB_Subscribe_Widget')):
         }
 
         public function form($instance) {
-            $title = isset($instance['title']) ? esc_attr($instance['title']) : 'Subscribe';
-            echo '<p><label for="'.$this->get_field_id('title').'">Title:</label>';
-            echo '<input class="widefat" id="'.$this->get_field_id('title').'" name="'.$this->get_field_name('title').'" type="text" value="'.$title.'"></p>';
+            $title = isset($instance['title']) ? esc_attr($instance['title']) : __('Subscribe', 'phplist-subscribe-box');
+            echo '<p><label for="'.esc_attr($this->get_field_id('title')).'">'.esc_html__('Title:', 'phplist-subscribe-box').'</label>';
+            echo '<input class="widefat" id="'.esc_attr($this->get_field_id('title')).'" name="'.esc_attr($this->get_field_name('title')).'" type="text" value="'.esc_attr($title).'"></p>';
         }
 
         public function update($new_instance, $old_instance) {

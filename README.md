@@ -1,10 +1,12 @@
-# Simple Subscribe Box (WordPress Plugin)
+# phpList Subscribe Box (WordPress Plugin)
 
-A minimal WordPress plugin that adds a subscribe box via a shortcode and widget, posting subscriptions to your API endpoint.
+A minimal WordPress plugin that adds a subscribe box via a shortcode and widget, posting subscriptions to your phpList instance.
+
+This file is developer-facing documentation (repo/build notes, local Docker setup). The plugin's user-facing listing content — the copy shown on the WordPress.org plugin page — lives in `readme.txt`; keep both in sync when behavior changes.
 
 ## Installation
-1. Copy the `subscribe-box` folder into your WordPress installation under `wp-content/plugins/`.
-2. In wp-admin, go to Plugins and activate "Simple Subscribe Box".
+1. Copy this folder into your WordPress installation under `wp-content/plugins/phplist-subscribe-box/` (the main file is `phplist-subscribe-box.php`).
+2. In wp-admin, go to Plugins and activate "phpList Subscribe Box".
 
 ## Configure
 1. Go to Settings -> Subscribe Box.
@@ -47,4 +49,10 @@ Example:
 
 ## Uninstall
 - Deactivating the plugin leaves settings intact.
-- To remove settings, delete the `ssb_options` option via the database or a custom uninstall routine (not included).
+- Deleting the plugin from wp-admin runs `uninstall.php`, which removes the `ssb_options` option and any rate-limit/session-key transients (including per-site on multisite).
+
+## License
+GPLv2 or later. See `LICENSE`.
+
+## Packaging for distribution
+Files listed in `.distignore` (`.git`, `.idea`, `docker-compose.yml`, `.env`/`.env.example`, this `README.md`, etc.) are development-only and should be excluded from the zip uploaded to WordPress.org or distributed to users — `readme.txt`, `uninstall.php`, `LICENSE`, `phplist-subscribe-box.php`, and `assets/` are what ship.

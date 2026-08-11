@@ -17,20 +17,20 @@
     }
 
     $button.prop('disabled', true);
-    setMessage($form, 'Working...', true);
+    setMessage($form, SSB.i18n.working, true);
     $.post(SSB.ajax_url, data)
       .done(function(resp){
         if (resp && resp.success) {
-          setMessage($form, resp.data && resp.data.message ? resp.data.message : 'Subscribed!', true);
+          setMessage($form, resp.data && resp.data.message ? resp.data.message : SSB.i18n.subscribed, true);
           // clear email only
           $form.find('input[type=email]').val('');
         } else {
-          var msg = (resp && resp.data && resp.data.message) ? resp.data.message : 'Error. Please try again.';
+          var msg = (resp && resp.data && resp.data.message) ? resp.data.message : SSB.i18n.genericError;
           setMessage($form, msg, false);
         }
       })
       .fail(function(xhr){
-        var msg = 'Error. Please try again.';
+        var msg = SSB.i18n.genericError;
         if (xhr && xhr.responseJSON && xhr.responseJSON.data && xhr.responseJSON.data.message) {
           msg = xhr.responseJSON.data.message;
         }
