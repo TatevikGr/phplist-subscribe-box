@@ -1,0 +1,65 @@
+version: '3.5'
+
+# Local manual-testing stack for this plugin only. Not used in production.
+# Brings up WordPress + MySQL, mounts this repo as a plugin folder.
+# phpList itself runs on the host via Apache at http://api.phplist.local
+# (see /etc/apache2/sites-enabled/phplist.conf) — extra_hosts below points
+# that hostname at the host gateway so containers can reach it.
+
+services:
+  wp_db:
+    image: mariadb:10.5
+    container_name: ssb_wp_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - ssb_wp_db_data:/var/lib/mysql
+
+  wordpress:
+    image: wordpress:php7.4-apache
+    container_name: ssb_wordpress
+    restart: unless-stopped
+    depends_on:
+      - wp_db
+    ports:
+      - "8090:80"
+    environment:
+      WORDPRESS_DB_HOST: wp_db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DEBUG: 1
+    volumes:
+      - ssb_wp_data:/var/www/html
+      - .:/var/www/html/wp-content/plugins/phplist-subscribe-box
+    extra_hosts:
+      - "api.phplist.local:host-gateway"
+      - "phplist.local:host-gateway"
+
+  wpcli:
+    image: wordpress:cli-php7.4
+    container_name: ssb_wpcli
+    depends_on:
+      - wordpress
+      - wp_db
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: wp_db
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - ssb_wp_data:/var/www/html
+      - .:/var/www/html/wp-content/plugins/phplist-subscribe-box
+    entrypoint: ["tail", "-f", "/dev/null"]
+    extra_hosts:
+      - "api.phplist.local:host-gateway"
+      - "phplist.local:host-gateway"
+
+volumes:
+  ssb_wp_db_data:
+  ssb_wp_data:
