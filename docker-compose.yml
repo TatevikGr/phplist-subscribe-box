@@ -2,9 +2,9 @@ version: '3.5'
 
 # Local manual-testing stack for this plugin only. Not used in production.
 # Brings up WordPress + MySQL, mounts this repo as a plugin folder.
-# phpList itself runs on the host via Apache at http://api.phplist.local
-# (see /etc/apache2/sites-enabled/phplist.conf) — extra_hosts below points
-# that hostname at the host gateway so containers can reach it.
+# phpList itself runs on the host via Apache (see /etc/apache2/sites-enabled/phplist.conf)
+# — extra_hosts below points that hostname at the host gateway so containers can reach it.
+# Override the hostname by setting SSB_PHPLIST_HOSTNAME (e.g. in a .env file).
 
 services:
   wp_db:
@@ -37,8 +37,7 @@ services:
       - ssb_wp_data:/var/www/html
       - .:/var/www/html/wp-content/plugins/phplist-subscribe-box
     extra_hosts:
-      - "api.phplist.local:host-gateway"
-      - "phplist.local:host-gateway"
+      - "${SSB_PHPLIST_HOSTNAME:-api.phplist.local}:host-gateway"
 
   wpcli:
     image: wordpress:cli-php7.4
@@ -57,8 +56,7 @@ services:
       - .:/var/www/html/wp-content/plugins/phplist-subscribe-box
     entrypoint: ["tail", "-f", "/dev/null"]
     extra_hosts:
-      - "api.phplist.local:host-gateway"
-      - "phplist.local:host-gateway"
+      - "${SSB_PHPLIST_HOSTNAME:-api.phplist.local}:host-gateway"
 
 volumes:
   ssb_wp_db_data:
