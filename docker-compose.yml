@@ -1,5 +1,3 @@
-version: '3.5'
-
 # Local manual-testing stack for this plugin only. Not used in production.
 # Brings up WordPress + MySQL, mounts this repo as a plugin folder.
 # phpList itself runs on the host via Apache (see /etc/apache2/sites-enabled/phplist.conf)
