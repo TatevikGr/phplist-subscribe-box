@@ -59,6 +59,9 @@ Only the email address submitted through the form, sent to the subscription path
 
 = 1.0.0 =
 * Initial release.
+* Smaller, more compact subscribe box (reduced width, padding, heading, field and button sizes).
+* Compact mode (`compact="true"`) is now capped at 360px wide.
+* New `button_color` shortcode attribute to set the button/accent color (hex); hover shade is derived automatically.
 
 == Upgrade Notice ==
 

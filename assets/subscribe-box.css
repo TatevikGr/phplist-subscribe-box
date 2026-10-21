@@ -6,32 +6,32 @@
   --ssb-focus-ring:rgba(21,94,239,.25);
   --ssb-error:#d64545;
   --ssb-success:#2e9e5b;
-  max-width:640px;
+  max-width:460px;
   margin:0 auto;
-  padding:24px 16px;
+  padding:12px 12px;
   font-family:inherit;
   color:inherit;
   text-align:center;
 }
 .ssb-box.ssb-compact{
-  max-width:none;
+  max-width:360px;
   margin:0;
   padding:0;
   text-align:left;
 }
 
 .ssb-heading{
-  margin:0 0 8px;
-  font-size:clamp(1.5rem,4vw,2.1rem);
+  margin:0 0 6px;
+  font-size:clamp(1.2rem,3.5vw,1.6rem);
   font-weight:800;
   line-height:1.15;
   color:inherit;
 }
 
 .ssb-subtitle{
-  margin:0 auto 24px;
+  margin:0 auto 16px;
   max-width:38ch;
-  font-size:1rem;
+  font-size:.9rem;
   line-height:1.5;
   color:currentColor;
   opacity:.6;
@@ -47,7 +47,7 @@
   display:flex;
   align-items:center;
   gap:10px;
-  padding:6px;
+  padding:4px;
   border-radius:999px;
   box-shadow:0 1px 3px rgba(0,0,0,.07), 0 4px 14px rgba(0,0,0,.05);
 }
@@ -58,7 +58,7 @@
   display:flex;
   line-height:0;
 }
-.ssb-icon{display:block;width:32px;height:32px;border-radius:50%}
+.ssb-icon{display:block;width:26px;height:26px;border-radius:50%}
 .ssb-box.ssb-compact .ssb-icon{width:26px;height:26px}
 
 .ssb-field{
@@ -67,7 +67,7 @@
   display:flex;
   align-items:center;
   gap:8px;
-  padding:10px 16px;
+  padding:7px 12px;
   border:1px solid var(--ssb-border);
   border-radius:999px;
   transition:border-color .15s ease, box-shadow .15s ease;
@@ -83,7 +83,7 @@
   flex:1 1 auto;
   min-width:0;
   padding:0;
-  font-size:.95em;
+  font-size:.9em;
   line-height:1.3;
   color:inherit;
   background:transparent;
@@ -97,8 +97,8 @@
   display:inline-flex;
   align-items:center;
   gap:8px;
-  padding:11px 22px;
-  font-size:.95em;
+  padding:8px 16px;
+  font-size:.9em;
   font-weight:700;
   color:#fff;
   background:var(--ssb-primary);

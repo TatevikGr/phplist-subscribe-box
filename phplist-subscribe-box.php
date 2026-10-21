@@ -190,6 +190,7 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
                 'button_text'       => __('Subscribe', 'phplist-subscribe-box'),
                 'show_badges'       => 'true',
                 'show_branding'     => 'true',
+                'button_color'      => '',
                 'compact'           => 'false',
             ], $atts, 'subscribe_box');
 
@@ -200,7 +201,21 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             $nonce    = wp_create_nonce(self::NONCE_ACTION);
             $icon_url = plugins_url('assets/phplist_icon.png', __FILE__);
 
-            $html = '<div class="ssb-box'.($compact?' ssb-compact':'').'">';
+            $style = '';
+            $color = sanitize_hex_color($atts['button_color']);
+            if ($color) {
+                $hex = strlen($color) === 4
+                    ? $color[1].$color[1].$color[2].$color[2].$color[3].$color[3]
+                    : substr($color, 1);
+                // Hover shade: ~20% darker
+                $hover = '';
+                foreach (str_split($hex, 2) as $channel) {
+                    $hover .= str_pad(dechex((int) round(hexdec($channel) * 0.8)), 2, '0', STR_PAD_LEFT);
+                }
+                $style = ' style="--ssb-primary:#'.esc_attr($hex).';--ssb-primary-hover:#'.esc_attr($hover).'"';
+            }
+
+            $html = '<div class="ssb-box'.($compact?' ssb-compact':'').'"'.$style.'>';
 
             if (!$compact) {
                 if ($atts['heading'] !== '') {

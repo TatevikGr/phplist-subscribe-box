@@ -25,6 +25,7 @@ This file is developer-facing documentation (repo/build notes, local Docker setu
 - `button_text` (default "Subscribe")
 - `show_badges` ("true"/"false", default "true") — shows the "No spam, ever / Your data is safe / Unsubscribe anytime" row
 - `show_branding` ("true"/"false", default "true") — shows the "Powered by phpList" footer
+- `button_color` (hex, e.g. `#e91e63`; default blue) — button and accent color; hover shade is derived automatically
 - `compact` ("true"/"false", default "false") — renders just the email pill (no heading, subtitle, badges, or branding); used automatically by the widget
 
 Example:
