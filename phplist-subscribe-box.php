@@ -230,10 +230,10 @@ if (!class_exists('PhpList_Subscribe_Box_Plugin')):
             $html .= '<input type="hidden" name="action" value="ssb_subscribe" />';
             $html .= '<input type="hidden" name="'.esc_attr(self::NONCE_NAME).'" value="'.esc_attr($nonce).'" />';
             $html .= '<div class="ssb-pill">';
-            $html .= '<span class="ssb-avatar"><img src="'.esc_url($icon_url).'" alt="" class="ssb-icon" width="32" height="32" /></span>';
             $html .= '<span class="ssb-field">';
             $html .= '<svg class="ssb-field-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>';
             $html .= '<input type="email" name="email" class="ssb-input" placeholder="'.esc_attr($atts['placeholder_email']).'" required />';
+            $html .= '<span class="ssb-avatar"><img src="'.esc_url($icon_url).'" alt="" class="ssb-icon" width="32" height="32" /></span>';
             $html .= '</span>';
             $html .= '<button type="submit" class="ssb-button">'.esc_html($atts['button_text']).' <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>';
             $html .= '</div>';
